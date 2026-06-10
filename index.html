@@ -1,55 +1,162 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Queue Cure</title>
-<link rel="stylesheet" href="style.css">
+    <title>Queue Cure</title>
+
+    <style>
+        body{
+            font-family: Arial;
+            background:#f4f7ff;
+            padding:20px;
+        }
+
+        .card{
+            background:white;
+            padding:20px;
+            border-radius:10px;
+            max-width:700px;
+            margin:auto;
+            box-shadow:0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        input, button{
+            padding:10px;
+            margin:5px;
+        }
+
+        button{
+            background:#2d6cdf;
+            color:white;
+            border:none;
+            cursor:pointer;
+        }
+
+        ul{
+            list-style:none;
+            padding:0;
+        }
+
+        li{
+            background:#eef3ff;
+            margin:5px 0;
+            padding:8px;
+            border-radius:5px;
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="container">
-
 <div class="card">
 
-<h1>🏥 Queue Cure</h1>
-<h2>Receptionist Dashboard</h2>
+    <h1>🏥 Queue Cure</h1>
+    <h2>Receptionist Dashboard</h2>
 
-<input type="text" id="patientName" placeholder="Enter Patient Name">
-<button onclick="addPatient()">Add Patient</button>
+    <input type="text" id="patientName" placeholder="Enter Patient Name">
+    <button onclick="addPatient()">Add Patient</button>
 
-<br><br>
+    <br><br>
 
-<label>Average Consultation Time:</label>
-<input type="number" id="avgTime" value="10">
+    <h3>Current Token: <span id="currentToken">0</span></h3>
+    <button onclick="callNext()">Call Next</button>
 
-<h3>Current Token: <span id="currentToken">0</span></h3>
+    <h3>Patients Waiting: <span id="waitingCount">0</span></h3>
 
-<button onclick="callNext()">Call Next</button>
-
-<h3>Patients Waiting: <span id="waitingCount">0</span></h3>
-
-</div>
-
-<div class="card">
-
-<h3>📊 Queue Analytics</h3>
-
-<p>Total Patients: <span id="totalPatients">0</span></p>
-
-<p>Patients Served: <span id="servedPatients">0</span></p>
-
-<p>Current Queue Length: <span id="queueLength">0</span></p>
+    <h3>Patient Queue</h3>
+    <ul id="patientList"></ul>
 
 </div>
 
-<h3>Patient Queue</h3>
+<script type="module">
 
-<ul id="patientList"></ul>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-</div>
+const firebaseConfig = {
+    apiKey: "AIzaSyCFaXWCEIMyVwEAKvb4trKSXnN3bgzycU",
+    authDomain: "queue-cure-26.firebaseapp.com",
+    databaseURL: "https://queue-cure-26-default-rtdb.firebaseio.com",
+    projectId: "queue-cure-26",
+    storageBucket: "queue-cure-26.firebasestorage.app",
+    messagingSenderId: "488093413771",
+    appId: "1:488093413771:web:402c097b072d8bc04aff8e"
+};
 
-</div>
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const dbRef = ref(db, "queue");
 
-<script src="script.js"></script>
+/* ---------------- ADD PATIENT (SAFE TOKEN SYSTEM) ---------------- */
+window.addPatient = function () {
+
+    let name = document.getElementById("patientName").value;
+    if (!name) return alert("Enter name");
+
+    get(dbRef).then(snapshot => {
+
+        let data = snapshot.val() || { current: 0, lastToken: 0, list: [] };
+
+        if (!data.list) data.list = [];
+
+        data.lastToken = (data.lastToken || 0) + 1;
+
+        data.list.push({
+            name: name,
+            token: data.lastToken
+        });
+
+        set(dbRef, data);
+
+        document.getElementById("patientName").value = "";
+    });
+}
+
+/* ---------------- CALL NEXT (SAFE) ---------------- */
+window.callNext = function () {
+
+    get(dbRef).then(snapshot => {
+
+        let data = snapshot.val();
+
+        if (!data || !data.list) return;
+
+        if (data.list.length === 0) {
+            alert("No patients");
+            return;
+        }
+
+        data.current = (data.current || 0) + 1;
+
+        data.list.shift();
+
+        set(dbRef, data);
+    });
+}
+
+/* ---------------- LIVE UPDATE ---------------- */
+onValue(dbRef, (snapshot) => {
+
+    let data = snapshot.val();
+
+    if (!data) return;
+
+    let list = data.list || [];
+    let current = data.current || 0;
+
+    document.getElementById("currentToken").innerText = current;
+
+    document.getElementById("patientList").innerHTML = "";
+
+    list.forEach(p => {
+        let li = document.createElement("li");
+        li.innerText = "Token " + p.token + " - " + p.name;
+        document.getElementById("patientList").appendChild(li);
+    });
+
+    document.getElementById("waitingCount").innerText = list.length;
+});
+
+</script>
 
 </body>
 </html>
