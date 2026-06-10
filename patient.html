@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Queue Cure - Patient View</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h1>🏥 Patient Waiting Room</h1>
+
+<h2>Current Token: <span id="currentToken">0</span></h2>
+
+<h3>Your Token:
+<input type="number" id="yourToken" value="5">
+</h3>
+
+<h3>People Ahead: <span id="ahead">0</span></h3>
+
+<h3>Estimated Wait: <span id="waitTime">0</span> Minutes</h3>
+
+<button onclick="calculateWait()">Check Status</button>
+
+</div>
+
+</div>
+
+<script>
+
+function calculateWait(){
+
+let currentToken =
+parseInt(prompt("Enter Current Token Being Served"));
+
+let yourToken =
+parseInt(document.getElementById("yourToken").value);
+
+let avgTime = 10;
+
+let ahead = yourToken - currentToken;
+
+if(ahead < 0){
+ahead = 0;
+}
+
+document.getElementById("currentToken").textContent =
+currentToken;
+
+document.getElementById("ahead").textContent =
+ahead;
+
+document.getElementById("waitTime").textContent =
+ahead * avgTime;
+
+}
+
+</script>
+
+</body>
+</html>
