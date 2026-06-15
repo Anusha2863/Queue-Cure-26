@@ -121,8 +121,25 @@ Queue Cure ’26 solves these issues by introducing:
    -> Live Sync Trigger (onValue)
    -> Updates UI (Receptionist + Patient)
 
+## 10. Socket Event Diagram
 
-## 10. Key Insights (EDA / System Insights)
+The following diagram illustrates the real-time communication flow between the Receptionist Dashboard, Firebase Realtime Database, and Patient Waiting Room.
+
+<img width="1122" height="1402" alt="ChatGPT Image Jun 15, 2026, 12_57_02 PM" src="https://github.com/user-attachments/assets/693e26cf-996b-48ca-adfc-8da2ea307233" />
+
+
+Flow Explanation:
+
+1. Receptionist adds a patient or clicks "Call Next".
+2. Data is updated in Firebase Realtime Database.
+3. Firebase onValue listener detects changes instantly.
+4. Patient Waiting Room receives updated queue information.
+5. Current token, people ahead, and estimated waiting time are recalculated.
+6. Patient screen updates automatically without page refresh.
+
+
+
+## 11. Key Insights (EDA / System Insights)
 
 1. Queue grows dynamically based on patient input
 2. Current token increases only when service progresses
@@ -132,7 +149,7 @@ Queue Cure ’26 solves these issues by introducing:
 5. Firebase acts as central real-time data controller
 
 
-## 11. Challenges Faced
+## 12. Challenges Faced
 
 1. Managing duplicate token generation
 2. Synchronizing multiple pages in real-time
@@ -141,7 +158,7 @@ Queue Cure ’26 solves these issues by introducing:
 5. Fixing Firebase write permission issues
 
 
-## 12. Improvements Made
+## 13. Improvements Made
 
 1. Introduced lastToken system for unique IDs
 2. Added queue array structure for proper ordering
@@ -150,7 +167,7 @@ Queue Cure ’26 solves these issues by introducing:
 5. Stabilized Firebase initialization logic
 
 
-## 13. Future Enhancements
+## 14. Future Enhancements
 
 1. Doctor login system
 2. SMS notification for patient turn
@@ -160,7 +177,7 @@ Queue Cure ’26 solves these issues by introducing:
 6. Multi-doctor queue support
 
 
-## 14. Conclusion
+## 15. Conclusion
 
 Queue Cure ’26 demonstrates how simple web technologies combined with Firebase can solve real-world hospital inefficiencies. The system improves transparency, reduces waiting confusion, and enables real-time queue management without manual intervention.
 
