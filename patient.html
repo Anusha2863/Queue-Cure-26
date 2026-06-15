@@ -50,7 +50,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCFaXWCEIMyVwEAKvb4trKSXnN3bgzycU",
+    apiKey: "AIzaSyCFaXWCEIMyVwEAKvb4trKSxN3bgzycY8U",
     authDomain: "queue-cure-26.firebaseapp.com",
     databaseURL: "https://queue-cure-26-default-rtdb.firebaseio.com",
     projectId: "queue-cure-26",
@@ -65,7 +65,19 @@ const dbRef = ref(db, "queue");
 
 const avgTime = 10;
 
-/* LIVE UPDATE */
+function updatePatientView() {
+
+    let current = parseInt(document.getElementById("currentToken").innerText) || 0;
+    let your = parseInt(document.getElementById("yourToken").value) || 0;
+
+    let ahead = your - current - 1;
+
+    if (ahead < 0) ahead = 0;
+
+    document.getElementById("ahead").innerText = ahead;
+    document.getElementById("wait").innerText = ahead * avgTime;
+}
+
 onValue(dbRef, (snapshot) => {
 
     let data = snapshot.val();
@@ -74,16 +86,12 @@ onValue(dbRef, (snapshot) => {
 
     let current = data.current || 0;
 
-    let your = parseInt(document.getElementById("yourToken").value || 0);
-
     document.getElementById("currentToken").innerText = current;
 
-    let ahead = your - current;
-    if (ahead < 0) ahead = 0;
-
-    document.getElementById("ahead").innerText = ahead;
-    document.getElementById("wait").innerText = ahead * avgTime;
+    updatePatientView();
 });
+
+document.getElementById("yourToken").addEventListener("input", updatePatientView);
 
 </script>
 
