@@ -17,6 +17,7 @@
             max-width:700px;
             margin:auto;
             box-shadow:0 2px 10px rgba(0,0,0,0.1);
+            text-align:center;
         }
 
         input, button{
@@ -29,6 +30,11 @@
             color:white;
             border:none;
             cursor:pointer;
+            border-radius:5px;
+        }
+
+        button:hover{
+            opacity:0.9;
         }
 
         ul{
@@ -58,7 +64,17 @@
     <br><br>
 
     <h3>Current Token: <span id="currentToken">0</span></h3>
+
     <button onclick="callNext()">Call Next</button>
+
+    <br><br>
+
+    <!-- Patient View Button Added -->
+    <a href="patient.html" target="_blank">
+        <button>👤 Open Patient View</button>
+    </a>
+
+    <br><br>
 
     <h3>Patients Waiting: <span id="waitingCount">0</span></h3>
 
@@ -86,74 +102,93 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const dbRef = ref(db, "queue");
 
-/* ---------------- ADD PATIENT (SAFE TOKEN SYSTEM) ---------------- */
+/* ADD PATIENT */
 window.addPatient = function () {
 
     let name = document.getElementById("patientName").value;
-    if (!name) return alert("Enter name");
+
+    if (!name){
+        alert("Enter patient name");
+        return;
+    }
 
     get(dbRef).then(snapshot => {
 
-        let data = snapshot.val() || { current: 0, lastToken: 0, list: [] };
+        let data = snapshot.val() || {
+            current:0,
+            lastToken:0,
+            list:[]
+        };
 
-        if (!data.list) data.list = [];
-
-        data.lastToken = (data.lastToken || 0) + 1;
+        data.lastToken++;
 
         data.list.push({
-            name: name,
-            token: data.lastToken
+            name:name,
+            token:data.lastToken
         });
 
-        set(dbRef, data);
+        set(dbRef,data);
 
-        document.getElementById("patientName").value = "";
+        document.getElementById("patientName").value="";
     });
 }
 
-/* ---------------- CALL NEXT (SAFE) ---------------- */
-window.callNext = function () {
+/* CALL NEXT */
+window.callNext = function(){
 
-    get(dbRef).then(snapshot => {
+    get(dbRef).then(snapshot=>{
 
-        let data = snapshot.val();
+        let data=snapshot.val();
 
-        if (!data || !data.list) return;
-
-        if (data.list.length === 0) {
-            alert("No patients");
+        if(!data || data.list.length===0){
+            alert("No patients waiting");
             return;
         }
 
-        data.current = (data.current || 0) + 1;
+        data.current++;
 
         data.list.shift();
 
-        set(dbRef, data);
+        set(dbRef,data);
+
     });
+
 }
 
-/* ---------------- LIVE UPDATE ---------------- */
-onValue(dbRef, (snapshot) => {
+/* LIVE UPDATE */
+onValue(dbRef,(snapshot)=>{
 
-    let data = snapshot.val();
+    let data=snapshot.val();
 
-    if (!data) return;
+    if(!data) return;
 
-    let list = data.list || [];
-    let current = data.current || 0;
+    let list=data.list || [];
 
-    document.getElementById("currentToken").innerText = current;
+    document.getElementById("currentToken").innerText =
+    data.current || 0;
 
-    document.getElementById("patientList").innerHTML = "";
+    document.getElementById("waitingCount").innerText =
+    list.length;
 
-    list.forEach(p => {
-        let li = document.createElement("li");
-        li.innerText = "Token " + p.token + " - " + p.name;
-        document.getElementById("patientList").appendChild(li);
+    let patientList =
+    document.getElementById("patientList");
+
+    patientList.innerHTML="";
+
+    list.forEach(patient=>{
+
+        let li=document.createElement("li");
+
+        li.innerText=
+        "Token " +
+        patient.token +
+        " - " +
+        patient.name;
+
+        patientList.appendChild(li);
+
     });
 
-    document.getElementById("waitingCount").innerText = list.length;
 });
 
 </script>
