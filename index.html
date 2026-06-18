@@ -17,7 +17,6 @@
             max-width:700px;
             margin:auto;
             box-shadow:0 2px 10px rgba(0,0,0,0.1);
-            text-align:center;
         }
 
         input, button{
@@ -48,6 +47,11 @@
             padding:8px;
             border-radius:5px;
         }
+
+        hr{
+            margin-top:30px;
+            margin-bottom:20px;
+        }
     </style>
 </head>
 
@@ -64,22 +68,22 @@
     <br><br>
 
     <h3>Current Token: <span id="currentToken">0</span></h3>
-
     <button onclick="callNext()">Call Next</button>
-
-    <br><br>
-
-    <!-- Patient View Button Added -->
-    <a href="patient.html" target="_blank">
-        <button>👤 Open Patient View</button>
-    </a>
-
-    <br><br>
 
     <h3>Patients Waiting: <span id="waitingCount">0</span></h3>
 
     <h3>Patient Queue</h3>
     <ul id="patientList"></ul>
+
+    <!-- Added Patient View Section -->
+
+    <hr>
+
+    <h3>Live Patient Screen</h3>
+
+    <a href="patient.html" target="_blank">
+        <button>👤 Open Patient View</button>
+    </a>
 
 </div>
 
@@ -102,15 +106,15 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const dbRef = ref(db, "queue");
 
+
 /* ADD PATIENT */
+
 window.addPatient = function () {
 
     let name = document.getElementById("patientName").value;
 
-    if (!name){
-        alert("Enter patient name");
-        return;
-    }
+    if (!name)
+        return alert("Enter name");
 
     get(dbRef).then(snapshot => {
 
@@ -120,7 +124,11 @@ window.addPatient = function () {
             list:[]
         };
 
-        data.lastToken++;
+        if(!data.list)
+            data.list=[];
+
+        data.lastToken =
+        (data.lastToken || 0)+1;
 
         data.list.push({
             name:name,
@@ -133,61 +141,68 @@ window.addPatient = function () {
     });
 }
 
+
 /* CALL NEXT */
-window.callNext = function(){
 
-    get(dbRef).then(snapshot=>{
+window.callNext = function () {
 
-        let data=snapshot.val();
+    get(dbRef).then(snapshot => {
 
-        if(!data || data.list.length===0){
-            alert("No patients waiting");
+        let data = snapshot.val();
+
+        if(!data || !data.list)
+            return;
+
+        if(data.list.length===0){
+
+            alert("No patients");
             return;
         }
 
-        data.current++;
+        data.current =
+        (data.current || 0)+1;
 
         data.list.shift();
 
         set(dbRef,data);
 
     });
-
 }
 
+
 /* LIVE UPDATE */
+
 onValue(dbRef,(snapshot)=>{
 
     let data=snapshot.val();
 
-    if(!data) return;
+    if(!data)
+        return;
 
     let list=data.list || [];
+    let current=data.current || 0;
 
-    document.getElementById("currentToken").innerText =
-    data.current || 0;
+    document.getElementById("currentToken").innerText=current;
 
-    document.getElementById("waitingCount").innerText =
-    list.length;
+    document.getElementById("patientList").innerHTML="";
 
-    let patientList =
-    document.getElementById("patientList");
-
-    patientList.innerHTML="";
-
-    list.forEach(patient=>{
+    list.forEach(p=>{
 
         let li=document.createElement("li");
 
         li.innerText=
-        "Token " +
-        patient.token +
-        " - " +
-        patient.name;
+        "Token "+
+        p.token+
+        " - "+
+        p.name;
 
-        patientList.appendChild(li);
+        document.getElementById("patientList")
+        .appendChild(li);
 
     });
+
+    document.getElementById("waitingCount")
+    .innerText=list.length;
 
 });
 
